@@ -40,6 +40,9 @@ aws ecr get-login-password --region us-east-2 | docker login --username AWS --pa
 2.  Build your Docker image using the following command. For information on building a Docker file from scratch see the instructions here . You can skip this step if your image is already built:
 ```bash
 docker build -t app .
+
+docker buildx build --platform linux/amd64 -t app .
+
 ```
 
 3. After the build completes, tag your image so you can push the image to this repository:
