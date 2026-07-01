@@ -1,0 +1,49 @@
+{
+  "info": {
+    "name": "Demo Escalado ECS Fargate",
+    "description": "Controla la CPU de las tareas ECS para demostrar el escalado horizontal.\n\nAntes de usar: edita la variable de coleccion `alb_url` con la URL que imprime Terraform (output `alb_hostname`), por ejemplo http://cb-load-balancer-xxxx.us-east-2.elb.amazonaws.com\n\nDEMO:\n1. GET Home / Status para ver 1 tarea en reposo.\n2. Abre el Collection Runner, elige 'Subir CPU (burn)', ~30 iteraciones con 2000 ms de delay y dale Run. Asi el burn se reparte a todas las tareas (round-robin del ALB).\n3. Observa el escalado (consola ECS o el comando watch del README). Sube de 1 hasta 4 tareas.\n4. Para bajar: deten el Runner y espera; el burn auto-expira (seconds) y ECS reduce las tareas. O corre 'Detener carga (stop)' varias veces.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "alb_url", "value": "http://REEMPLAZA-CON-EL-ALB.us-east-2.elb.amazonaws.com" }
+  ],
+  "item": [
+    {
+      "name": "Home (/)",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{alb_url}}/", "host": ["{{alb_url}}"], "path": [""] },
+        "description": "Pagina HTML: muestra que tarea respondio (hostname) y su estado."
+      }
+    },
+    {
+      "name": "Status (/status)",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{alb_url}}/status", "host": ["{{alb_url}}"], "path": ["status"] },
+        "description": "JSON con task, burning y segundos restantes de la tarea que respondio."
+      }
+    },
+    {
+      "name": "Subir CPU (burn)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"seconds\": 120,\n  \"workers\": 1,\n  \"load\": 0.85\n}"
+        },
+        "url": { "raw": "{{alb_url}}/burn", "host": ["{{alb_url}}"], "path": ["burn"] },
+        "description": "Sube la CPU de la tarea que reciba el request durante `seconds`. Usa el Collection Runner en bucle para saturar todas las tareas."
+      }
+    },
+    {
+      "name": "Detener carga (stop)",
+      "request": {
+        "method": "POST",
+        "url": { "raw": "{{alb_url}}/stop", "host": ["{{alb_url}}"], "path": ["stop"] },
+        "description": "Baja la CPU de la tarea que reciba el request. Correlo varias veces para alcanzar a todas las tareas."
+      }
+    }
+  ]
+}

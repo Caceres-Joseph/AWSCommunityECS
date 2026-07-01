@@ -1,5 +1,6 @@
 # outputs.tf
 
 output "alb_hostname" {
-  value = "${aws_alb.main.dns_name}:3000"
+  description = "URL pública del ALB (la app escucha en el puerto 80)"
+  value       = "http://${aws_alb.main.dns_name}"
 }

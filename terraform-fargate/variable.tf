@@ -1,39 +1,39 @@
 # variables.tf
 
 variable "aws_region" {
-    description = "The AWS region things are created in"
-    default = "us-east-2"
+  description = "The AWS region things are created in"
+  default     = "us-east-2"
 }
 
 variable "ec2_task_execution_role_name" {
-    description = "ECS task execution role name"
-    default = "myEcsTaskExecutionRole"
+  description = "ECS task execution role name"
+  default     = "myEcsTaskExecutionRole"
 }
 
 variable "ecs_auto_scale_role_name" {
-    description = "ECS auto scale role name"
-    default = "myEcsAutoScaleRole"
+  description = "ECS auto scale role name"
+  default     = "myEcsAutoScaleRole"
 }
 
 variable "az_count" {
-    description = "Number of AZs to cover in a given region"
-    default = "2"
+  description = "Number of AZs to cover in a given region"
+  default     = "2"
 }
 
 variable "app_image" {
-    description = "Docker image to run in the ECS cluster"
-    default = "637423235030.dkr.ecr.us-east-2.amazonaws.com/app:latest"
+  description = "Docker image to run in the ECS cluster"
+  default     = "637423235030.dkr.ecr.us-east-2.amazonaws.com/app:latest"
 }
 
 variable "app_port" {
-    description = "Port exposed by the docker image to redirect traffic to"
-    default = 80
+  description = "Port exposed by the docker image to redirect traffic to"
+  default     = 80
 
 }
 
 variable "app_count" {
-    description = "Number of docker containers to run"
-    default = 1
+  description = "Number of docker containers to run"
+  default     = 1
 }
 
 variable "health_check_path" {
@@ -41,11 +41,11 @@ variable "health_check_path" {
 }
 
 variable "fargate_cpu" {
-    description = "Fargate instance CPU units to provision (1 vCPU = 1024 CPU units)"
-    default = "1024"
+  description = "Fargate instance CPU units to provision (1 vCPU = 1024 CPU units)"
+  default     = "1024"
 }
 
 variable "fargate_memory" {
-    description = "Fargate instance memory to provision (in MiB)"
-    default = "2048"
+  description = "Fargate instance memory to provision (in MiB)"
+  default     = "2048"
 }
