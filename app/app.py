@@ -227,7 +227,7 @@ def home():
 <html lang="es"><head><meta charset="utf-8"><title>Demo Escalado ECS</title>
 <meta http-equiv="refresh" content="3"></head>
 <body style="font-family:sans-serif;text-align:center;margin-top:6%">
-  <h1>Hola Universidad 👋</h1>
+  <h1>Hola Universidad v2 👋</h1>
   <p>Respondió la tarea: <b>{s['task']}</b></p>
   <p>Estado: <b>{estado}</b></p>
   <p>CPU: <b>{cpu}</b></p>
