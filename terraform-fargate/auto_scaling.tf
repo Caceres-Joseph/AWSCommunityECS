@@ -45,7 +45,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu_high" {
   statistic           = "Average"
   period              = 60 # 1 datapoint por minuto
   evaluation_periods  = 2  # 2 datapoints -> ~2 min (pon 1 para ~1 min)
-  threshold           = 50
+  threshold           = 40 # la CPU por tarea topa en ~50%; 40 da margen para disparar
 
   dimensions = {
     ClusterName = aws_ecs_cluster.main.name

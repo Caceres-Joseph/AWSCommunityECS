@@ -1,8 +1,10 @@
 import os
+import json
 import socket
 import time
 import threading
 import multiprocessing
+from urllib.request import urlopen
 
 from flask import Flask, request, jsonify
 
@@ -26,23 +28,60 @@ def _read_int(path):
         return int(f.read().strip())
 
 
+_quota_cache = None
+
+
+def _task_vcpu_from_metadata():
+    """vCPUs reservadas al task, leídas del endpoint de metadata de ECS.
+
+    Es el MISMO denominador que usa la métrica CPUUtilization de CloudWatch,
+    así el % de la app coincide con el de AWS. Devuelve None fuera de ECS.
+    """
+    uri = (os.environ.get("ECS_CONTAINER_METADATA_URI_V4")
+           or os.environ.get("ECS_CONTAINER_METADATA_URI"))
+    if not uri:
+        return None
+    try:
+        with urlopen(uri + "/task", timeout=1) as r:
+            data = json.load(r)
+    except Exception:
+        return None
+    cpu = (data.get("Limits") or {}).get("CPU")
+    return float(cpu) if cpu else None
+
+
 def _cpu_quota():
-    """Número de vCPUs asignadas al contenedor (p. ej. 1.0 en Fargate 1024)."""
-    try:  # cgroup v2
-        with open("/sys/fs/cgroup/cpu.max") as f:
-            parts = f.read().split()
-        if parts[0] != "max":
-            return int(parts[0]) / int(parts[1])
-    except (FileNotFoundError, ValueError, IndexError):
-        pass
-    try:  # cgroup v1
-        q = _read_int("/sys/fs/cgroup/cpu/cpu.cfs_quota_us")
-        p = _read_int("/sys/fs/cgroup/cpu/cpu.cfs_period_us")
-        if q > 0 and p > 0:
-            return q / p
-    except (FileNotFoundError, ValueError):
-        pass
-    return float(os.cpu_count() or 1)
+    """vCPUs asignadas al task (denominador del % de CPU). Se cachea 1 vez.
+
+    Prioridad: metadata de ECS (== CloudWatch) → cgroup v2 → cgroup v1 →
+    núcleos del host (impreciso en Fargate, era la causa del bug de 50% vs 100%).
+    """
+    global _quota_cache
+    if _quota_cache is not None:
+        return _quota_cache
+
+    q = _task_vcpu_from_metadata()
+    if q is None:
+        try:  # cgroup v2
+            with open("/sys/fs/cgroup/cpu.max") as f:
+                parts = f.read().split()
+            if parts[0] != "max":
+                q = int(parts[0]) / int(parts[1])
+        except (FileNotFoundError, ValueError, IndexError):
+            pass
+    if q is None:
+        try:  # cgroup v1
+            quota = _read_int("/sys/fs/cgroup/cpu/cpu.cfs_quota_us")
+            period = _read_int("/sys/fs/cgroup/cpu/cpu.cfs_period_us")
+            if quota > 0 and period > 0:
+                q = quota / period
+        except (FileNotFoundError, ValueError):
+            pass
+    if q is None:
+        q = float(os.cpu_count() or 1)
+
+    _quota_cache = q
+    return q
 
 
 def _cpu_usage_usec():
