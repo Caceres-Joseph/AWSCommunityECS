@@ -32,7 +32,7 @@ resource "aws_appautoscaling_policy" "up" {
 
     step_adjustment {
       metric_interval_lower_bound = 0
-      scaling_adjustment          = 2 # salto grande = más visible en la demo
+      scaling_adjustment          = 1 # salto grande = más visible en la demo
     }
   }
 }
